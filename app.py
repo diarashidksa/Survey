@@ -338,34 +338,39 @@ def final():
 
     if request.method == 'POST':
         user_email = request.form.get('email')
-
-        final_level_en = LEVELS[final_level]["en"]
-        final_level_ar = LEVELS[final_level]["ar"]
-        recommendation_en = RECOMMENDATIONS[final_level]["en"]
-        recommendation_ar = RECOMMENDATIONS[final_level]["ar"]
-
+        # ... (Your existing POST code here, including the mail.connect() fix) ...
+        # ... (This part is not the source of the current error) ...
         try:
-            with mail.connect() as conn:  # <-- Add this line
+            with mail.connect() as conn:
                 msg = Message(
                     subject="Your Agentic AI Maturity Assessment Result",
                     recipients=[user_email],
                     bcc=[os.environ.get('BCC_EMAIL')],
                     html=render_template('email_template.html',
-                                         final_level_en=final_level_en,
-                                         final_level_ar=final_level_ar,
+                                         final_level_en=LEVELS[final_level]["en"],
+                                         final_level_ar=LEVELS[final_level]["ar"],
                                          level_scores=level_scores,
-                                         recommendation_en=recommendation_en,
-                                         recommendation_ar=recommendation_ar,
+                                         recommendation_en=RECOMMENDATIONS[final_level]["en"],
+                                         recommendation_ar=RECOMMENDATIONS[final_level]["ar"],
                                          logo_url=url_for('static', filename='img/rasheed_logo.png'))
                 )
-                conn.send(msg)  # <-- Change `mail.send(msg)` to `conn.send(msg)`
+                conn.send(msg)
 
             return render_template('thanks.html', message="Your results have been sent to your email. Thank you!",
                                    lang=lang)
 
         except Exception as e:
-            # This block will now likely be hit only for other issues, like bad credentials
             return f"An error occurred: {e}", 500
+
+    # This is the return statement for the GET request
+    return render_template('final.html',
+                           logo_url=url_for('static', filename='img/rasheed_logo.png'),
+                           lang=lang,
+                           final_level=final_level,
+                           level_scores=level_scores,
+                           recommendations=RECOMMENDATIONS,
+                           levels=LEVELS,
+                           answers_str=answers_str)
 
 @app.route('/thanks')
 def thanks():
