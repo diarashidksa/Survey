@@ -1,4 +1,6 @@
 import os
+import logging
+
 from flask import Flask, render_template, request, redirect, url_for
 from flask_mail import Mail, Message
 from dotenv import load_dotenv
@@ -338,36 +340,32 @@ def final():
 
     if request.method == 'POST':
         user_email = request.form.get('email')
-
-        final_level_en = LEVELS[final_level]["en"]
-        final_level_ar = LEVELS[final_level]["ar"]
-        recommendation_en = RECOMMENDATIONS[final_level]["en"]
-        recommendation_ar = RECOMMENDATIONS[final_level]["ar"]
+        app.logger.info(f"POST /final received email={user_email}")
 
         try:
             msg = Message(
                 subject="Your Agentic AI Maturity Assessment Result",
-                recipients=[user_email],
-                bcc=[os.environ.get('BCC_EMAIL')],
+                recipients=[user_email] if user_email else [],
+                bcc=[os.environ.get('BCC_EMAIL')] if os.environ.get('BCC_EMAIL') else [],
                 html=render_template('email_template.html',
-                                     final_level_en=final_level_en,
-                                     final_level_ar=final_level_ar,
+                                     final_level_en=LEVELS[final_level]["en"],
+                                     final_level_ar=LEVELS[final_level]["ar"],
                                      level_scores=level_scores,
-                                     recommendation_en=recommendation_en,
-                                     recommendation_ar=recommendation_ar,
+                                     recommendation_en=RECOMMENDATIONS[final_level]["en"],
+                                     recommendation_ar=RECOMMENDATIONS[final_level]["ar"],
                                      logo_url=url_for('static', filename='img/rasheed_logo.png'))
             )
             mail.send(msg)
-
-            return render_template('thanks.html', message="Your results have been sent to your email. Thank you!",
+            return render_template('thanks.html',
+                                   message="Your results have been sent to your email. Thank you!",
                                    lang=lang)
-
         except Exception as e:
+            app.logger.error(f"Error sending email: {e}")
             return f"An error occurred: {e}", 500
 
-    return render_template('final.html', logo_url=url_for('static', filename='img/rasheed_logo.png'),
+    return render_template('final.html',
+                           logo_url=url_for('static', filename='img/rasheed_logo.png'),
                            lang=lang)
-
 
 @app.route('/thanks')
 def thanks():
