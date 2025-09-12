@@ -338,8 +338,12 @@ def final():
 
     if request.method == 'POST':
         user_email = request.form.get('email')
-        # ... (Your existing POST code here, including the mail.connect() fix) ...
-        # ... (This part is not the source of the current error) ...
+
+        final_level_en = LEVELS[final_level]["en"]
+        final_level_ar = LEVELS[final_level]["ar"]
+        recommendation_en = RECOMMENDATIONS[final_level]["en"]
+        recommendation_ar = RECOMMENDATIONS[final_level]["ar"]
+
         try:
             with mail.connect() as conn:
                 msg = Message(
@@ -347,11 +351,11 @@ def final():
                     recipients=[user_email],
                     bcc=[os.environ.get('BCC_EMAIL')],
                     html=render_template('email_template.html',
-                                         final_level_en=LEVELS[final_level]["en"],
-                                         final_level_ar=LEVELS[final_level]["ar"],
+                                         final_level_en=final_level_en,
+                                         final_level_ar=final_level_ar,
                                          level_scores=level_scores,
-                                         recommendation_en=RECOMMENDATIONS[final_level]["en"],
-                                         recommendation_ar=RECOMMENDATIONS[final_level]["ar"],
+                                         recommendation_en=recommendation_en,
+                                         recommendation_ar=recommendation_ar,
                                          logo_url=url_for('static', filename='img/rasheed_logo.png'))
                 )
                 conn.send(msg)
@@ -360,6 +364,7 @@ def final():
                                    lang=lang)
 
         except Exception as e:
+            # This block will now likely be hit only for other issues, like bad credentials
             return f"An error occurred: {e}", 500
 
     # This is the return statement for the GET request
