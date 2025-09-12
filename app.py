@@ -339,12 +339,14 @@ def final():
     if request.method == 'POST':
         user_email = request.form.get('email')
 
+        # Determine the final level and recommendations
         final_level_en = LEVELS[final_level]["en"]
         final_level_ar = LEVELS[final_level]["ar"]
         recommendation_en = RECOMMENDATIONS[final_level]["en"]
         recommendation_ar = RECOMMENDATIONS[final_level]["ar"]
 
         try:
+            # THIS IS THE FIX: Explicitly connect to the SMTP server
             with mail.connect() as conn:
                 msg = Message(
                     subject="Your Agentic AI Maturity Assessment Result",
@@ -358,16 +360,15 @@ def final():
                                          recommendation_ar=recommendation_ar,
                                          logo_url=url_for('static', filename='img/rasheed_logo.png'))
                 )
-                conn.send(msg)
+                conn.send(msg)  # Use the connection object to send the message
 
             return render_template('thanks.html', message="Your results have been sent to your email. Thank you!",
                                    lang=lang)
 
         except Exception as e:
-            # This block will now likely be hit only for other issues, like bad credentials
             return f"An error occurred: {e}", 500
 
-    # This is the return statement for the GET request
+    # This handles the GET request, which works correctly based on the logs
     return render_template('final.html',
                            logo_url=url_for('static', filename='img/rasheed_logo.png'),
                            lang=lang,
