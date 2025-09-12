@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Maturity Assessment Survey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .error-border {
+            border: 2px solid #f97316 !important;
+        }
+
+            .footer {
+            text-align: center;
+            padding-top: 25px;
+            border-top: 1px solid #dee2e6;
+            font-size: 13px;
+            color: #adb5bd;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl p-8 max-w-2xl w-full text-center">
+        <img src="{{ url_for('static', filename='img/rasheed_logo.png') }}" alt="Logo" class="h-20 mx-auto mb-6">
+
+        {% set color_map = ['bg-red-600', 'bg-orange-800', 'bg-orange-300', 'bg-green-300', 'bg-green-600'] %}
+
+        {% if level_data.level_en == 'Minimal' or level_data.level_en == 'Advanced' or level_data.level_en == 'Emerging' %}
+            {% set text_color = 'text-white' %}
+        {% elif level_data.level_en == 'Intermediate' %}
+            {% set text_color = 'text-green-800' %}
+        {% else %}
+            {% set text_color = 'text-gray-800' %}
+        {% endif %}
+
+        <h1 class="font-bold mb-4 px-4 py-2 rounded-lg inline-block {{ color_map[level_index] }} {{ text_color }}">
+            {{ level_data.level_en }}
+        </h1>
+
+        <p class="text-sm text-gray-500 mb-6">
+            Step {{ level_index + 1 }} / {{ total_levels }}
+        </p>
+
+        <div id="error-message" class="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-3 rounded relative hidden mb-4" role="alert">
+            <span class="block sm:inline">Please select an option for each question before proceeding.</span>
+        </div>
+
+        <form id="surveyForm" method="POST" action="{{ url_for('survey', level=current_level) }}">
+            <input type="hidden" name="previous_answers" value="{{ previous_answers }}">
+
+            {% for q in level_data.questions %}
+                {% set question_index = loop.index0 %}
+                <div class="mb-6 text-left question-container">
+                    <h2 class="text-lg font-semibold mb-2">{{ q.q }}</h2>
+                    <div class="flex flex-col space-y-2">
+                        {% for option in q.options %}
+                            <label class="block">
+                                <input type="radio" class="hidden peer" name="q_{{ current_level }}_{{ question_index }}" value="{{ option[0] }}">
+                                <div class="p-3 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors peer-checked:bg-red-50 peer-checked:border-red-600">
+                                    <span class="text-gray-700 font-medium">{{ option }}</span>
+                                </div>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="mt-8 flex justify-between items-center">
+                {% if level_index > 0 %}
+                <a href="{{ url_for('survey', level=levels[level_index-1], answers=previous_answers) }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors">
+                    Back
+                </a>
+                {% endif %}
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ml-auto">
+                    Next
+                </button>
+            </div>
+        </form>
+        <div class="footer">
+            powered by <span style="color: #dc3545;">www.rasheed.ai</span>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('surveyForm').addEventListener('submit', function(event) {
+            const questionContainers = document.querySelectorAll('.question-container');
+            let allQuestionsAnswered = true;
+
+            questionContainers.forEach(container => {
+                container.classList.remove('error-border');
+            });
+
+            questionContainers.forEach(container => {
+                const radios = container.querySelectorAll('input[type="radio"]');
+                let isAnswered = false;
+                radios.forEach(radio => {
+                    if (radio.checked) {
+                        isAnswered = true;
+                    }
+                });
+
+                if (!isAnswered) {
+                    allQuestionsAnswered = false;
+                    container.classList.add('error-border');
+                }
+            });
+
+            if (!allQuestionsAnswered) {
+                event.preventDefault();
+                document.getElementById('error-message').classList.remove('hidden');
+                const firstUnanswered = document.querySelector('.error-border');
+                if (firstUnanswered) {
+                    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                document.getElementById('error-message').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

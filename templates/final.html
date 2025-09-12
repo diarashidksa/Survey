@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'AI Maturity Assessment' if lang == 'en' else 'تقييم نضج الذكاء الاصطناعي' }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .result-card {
+            border-left: 4px solid #10b981;
+        }
+        .email-btn {
+            background-color: #dc2626; /* Dark Red */
+            color: #fff;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: background-color 0.3s ease;
+            font-size: 1.25rem;
+            width: 100%;
+        }
+        .email-btn:hover {
+            background-color: #b91c1c; /* Slightly darker red on hover */
+        }
+        .email-btn:disabled {
+            background-color: #ef4444; /* Lighter red when disabled */
+            cursor: not-allowed;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 25px;
+            border-top: 1px solid #dee2e6;
+            font-size: 13px;
+            color: #adb5bd;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl mx-4 my-8">
+        <div class="flex items-center justify-between mb-6">
+            <img src="{{ logo_url }}" alt="Rasheed Logo" class="h-16">
+            <div class="text-gray-500">
+                {{ 'Step' if lang == 'en' else 'الخطوة' }} 5 / 5
+            </div>
+        </div>
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center">{{ 'Agentic AI Maturity Assessment' if lang == 'en' else 'تقييم نضج الذكاء الاصطناعي' }}</h1>
+        <form method="POST" id="emailForm">
+            <input type="hidden" name="answers" value="{{ answers }}">
+            <input type="hidden" name="lang" value="{{ lang }}">
+            <div class="mb-6">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">{{ 'Enter your email to receive a copy of your results:' if lang == 'en' else 'أدخل بريدك الإلكتروني لتلقي نسخة من نتائجك:' }}</label>
+                <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <p id="emailError" class="text-red-600 text-sm mt-1 hidden">{{ 'Please use your business email address (free email providers are not allowed).' if lang == 'en' else 'يرجى استخدام بريدك الإلكتروني الخاص بالعمل (البريد المجاني غير مسموح).' }}</p>
+            </div>
+            <button type="submit" class="email-btn" id="sendEmailBtn">
+                {{ 'Send My Results' if lang == 'en' else 'أرسل نتائجي' }}
+            </button>
+        </form>
+        <div class="footer">
+            powered by <span style="color: #dc3545;">www.rasheed.ai</span>
+        </div>
+    </div>
+    <script>
+        const emailForm = document.getElementById('emailForm');
+        const emailInput = document.getElementById('email');
+        const emailError = document.getElementById('emailError');
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
+
+        const freeEmailProviders = [
+            "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
+            "live.com", "msn.com", "icloud.com", "aol.com", "protonmail.com"
+        ];
+
+        emailForm.addEventListener('submit', function(e) {
+            const emailValue = emailInput.value.trim().toLowerCase();
+            const domain = emailValue.split('@')[1];
+            if (freeEmailProviders.includes(domain)) {
+                e.preventDefault();
+                emailError.classList.remove('hidden');
+                return;
+            }
+            sendEmailBtn.disabled = true;
+        });
+
+        emailInput.addEventListener('input', function() {
+            emailError.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

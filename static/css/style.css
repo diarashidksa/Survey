@@ -1,0 +1,162 @@
+/* General Body and Container Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    text-align: center;
+    direction: ltr; /* Default direction */
+}
+
+.container {
+    background-color: #fff;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+}
+
+/* Page-specific styling */
+.welcome-page, .final-page, .thanks-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.survey-page {
+    text-align: left;
+}
+
+/* Logo and Headings */
+.logo {
+    width: 150px;
+    margin-bottom: 20px;
+}
+
+h1, h2 {
+    color: #4b4b8c;
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-size: 2.5em;
+}
+
+h2 {
+    font-size: 2em;
+}
+
+p {
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Form and Buttons */
+form {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.start-button,
+button[type="submit"] {
+    background-color: #4b4b8c;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.start-button:hover,
+button[type="submit"]:hover {
+    background-color: #38387a;
+}
+
+input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.question-block {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: #f9f9fb;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.question-block p {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.question-block label {
+    display: block;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.question-block input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* Language Switcher */
+.language-switcher {
+    margin-top: 20px;
+}
+
+.lang-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    color: #4b4b8c;
+    margin: 0 5px;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.lang-button:hover {
+    color: #38387a;
+}
+
+.lang-button.active {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Right-to-Left (RTL) styling for Arabic */
+body[lang="ar"] {
+    direction: rtl;
+    text-align: right;
+}
+
+body[lang="ar"] .survey-page {
+    text-align: right;
+}
+
+body[lang="ar"] .question-block label {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+body[lang="ar"] .question-block input[type="radio"] {
+    margin-left: 10px;
+    margin-right: 0;
+}
