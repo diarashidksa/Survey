@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_mail import Mail, Message
 from dotenv import load_dotenv
 
-# Load variables from .env file (local development only)
+#  Load variables from .env file (local development only)
 load_dotenv()
 
 app = Flask(__name__)
