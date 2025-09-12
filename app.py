@@ -1,23 +1,18 @@
 import os
+import smtplib
+from email.mime.text import MIMEText
 from flask import Flask, render_template, request, redirect, url_for
-from flask_mail import Mail, Message
 from dotenv import load_dotenv
 
-#  Load variables from .env file (local development only)
+# Load variables from .env file (local development only)
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
 
-# SMTP Configuration: Now reading securely from environment variables
-app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
-app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 465))
-app.config['MAIL_USE_TLS'] = False
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
-mail = Mail(app)
+# --- SMTP Configuration ---
+# The SMTP configuration is now read directly from environment variables and used in the send_email_via_smtp function.
+# No need for Flask-Mail app.config settings.
 
 # The survey questions and choices
 QUESTIONS = {
@@ -232,13 +227,10 @@ def calculate_maturity(answers_str):
         try:
             answers = dict(item.split("=") for item in answers_str.split("&"))
         except ValueError:
-            # This handles cases where the string might be malformed
             answers = {}
 
-    # Recalculate scores per level specifically for the email report
     level_scores_breakdown = {"Minimal": 0, "Emerging": 0, "Basic": 0, "Intermediate": 0, "Advanced": 0}
 
-    # Sum points for each question and each level
     for level, data in QUESTIONS.items():
         for i in range(len(data["questions"])):
             answer_key = f"q_{level}_{i}"
@@ -251,7 +243,6 @@ def calculate_maturity(answers_str):
                     total_score += 2
                     level_scores_breakdown[level] += 2
 
-    # Map the total score to a final level
     if total_score <= 6:
         final_level = "Minimal"
     elif 7 <= total_score <= 12:
@@ -260,10 +251,40 @@ def calculate_maturity(answers_str):
         final_level = "Basic"
     elif 20 <= total_score <= 26:
         final_level = "Intermediate"
-    else:  # total_score > 26
+    else:
         final_level = "Advanced"
 
     return final_level, level_scores_breakdown
+
+
+def send_email_via_smtp(receiver_email, subject, html_content, bcc_email=None):
+    """Sends an email using the smtplib library."""
+    try:
+        smtp_server = os.environ.get('MAIL_SERVER')
+        smtp_port = int(os.environ.get('MAIL_PORT', 465))
+        sender_email = os.environ.get('MAIL_USERNAME')
+        sender_password = os.environ.get('MAIL_PASSWORD')
+
+        msg = MIMEText(html_content, 'html', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+
+        # Handle multiple recipients including BCC
+        recipients = [receiver_email]
+        if bcc_email:
+            recipients.append(bcc_email)
+            msg['Bcc'] = bcc_email
+
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipients, msg.as_string())
+
+        print("Email sent successfully!")
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
 
 
 @app.route('/')
@@ -300,12 +321,10 @@ def survey(level):
     level_data = QUESTIONS[level]
 
     if request.method == 'POST':
-        # Get answers from the submitted form and previous answers from the hidden field
         all_answers_dict = {}
         if request.form.get('previous_answers'):
             all_answers_dict = dict(item.split("=") for item in request.form.get('previous_answers').split("&"))
 
-        # Add current answers to the dictionary with unique keys
         for i in range(len(level_data["questions"])):
             answer_key = f"q_{level}_{i}"
             all_answers_dict[answer_key] = request.form.get(f"q_{level}_{i}")
@@ -338,39 +357,27 @@ def final():
 
     if request.method == 'POST':
         user_email = request.form.get('email')
+        bcc_email = os.environ.get('BCC_EMAIL')
 
-        # This determines the final level and recommendations based on the user's answers.
         final_level_en = LEVELS[final_level]["en"]
         final_level_ar = LEVELS[final_level]["ar"]
         recommendation_en = RECOMMENDATIONS[final_level]["en"]
         recommendation_ar = RECOMMENDATIONS[final_level]["ar"]
 
-        try:
-            # THIS IS THE SOLID SOLUTION: Explicitly connect to the SMTP server.
-            # The 'with' block ensures the connection is managed properly.
-            with mail.connect() as conn:
-                msg = Message(
-                    subject="Your Agentic AI Maturity Assessment Result",
-                    recipients=[user_email],
-                    bcc=[os.environ.get('BCC_EMAIL')],
-                    html=render_template('email_template.html',
-                                         final_level_en=final_level_en,
-                                         final_level_ar=final_level_ar,
-                                         level_scores=level_scores,
-                                         recommendation_en=recommendation_en,
-                                         recommendation_ar=recommendation_ar,
-                                         logo_url=url_for('static', filename='img/rasheed_logo.png'))
-                )
-                conn.send(msg)  # Use the connection object to send the message.
+        html_content = render_template('email_template.html',
+                                       final_level_en=final_level_en,
+                                       final_level_ar=final_level_ar,
+                                       level_scores=level_scores,
+                                       recommendation_en=recommendation_en,
+                                       recommendation_ar=recommendation_ar,
+                                       logo_url=url_for('static', filename='img/rasheed_logo.png'))
 
+        if send_email_via_smtp(user_email, "Your Agentic AI Maturity Assessment Result", html_content, bcc_email):
             return render_template('thanks.html', message="Your results have been sent to your email. Thank you!",
                                    lang=lang)
+        else:
+            return "An error occurred while sending the email. Please check your SMTP configuration and try again.", 500
 
-        except Exception as e:
-            # This handles any remaining issues with the email sending process, like incorrect credentials.
-            return f"An error occurred: {e}", 500
-
-    # This handles the GET request, displaying the user's results before email submission.
     return render_template('final.html',
                            logo_url=url_for('static', filename='img/rasheed_logo.png'),
                            lang=lang,
@@ -379,6 +386,7 @@ def final():
                            recommendations=RECOMMENDATIONS,
                            levels=LEVELS,
                            answers_str=answers_str)
+
 
 @app.route('/thanks')
 def thanks():
