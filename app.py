@@ -339,14 +339,15 @@ def final():
     if request.method == 'POST':
         user_email = request.form.get('email')
 
-        # Determine the final level and recommendations
+        # This determines the final level and recommendations based on the user's answers.
         final_level_en = LEVELS[final_level]["en"]
         final_level_ar = LEVELS[final_level]["ar"]
         recommendation_en = RECOMMENDATIONS[final_level]["en"]
         recommendation_ar = RECOMMENDATIONS[final_level]["ar"]
 
         try:
-            # THIS IS THE FIX: Explicitly connect to the SMTP server
+            # THIS IS THE SOLID SOLUTION: Explicitly connect to the SMTP server.
+            # The 'with' block ensures the connection is managed properly.
             with mail.connect() as conn:
                 msg = Message(
                     subject="Your Agentic AI Maturity Assessment Result",
@@ -360,15 +361,16 @@ def final():
                                          recommendation_ar=recommendation_ar,
                                          logo_url=url_for('static', filename='img/rasheed_logo.png'))
                 )
-                conn.send(msg)  # Use the connection object to send the message
+                conn.send(msg)  # Use the connection object to send the message.
 
             return render_template('thanks.html', message="Your results have been sent to your email. Thank you!",
                                    lang=lang)
 
         except Exception as e:
+            # This handles any remaining issues with the email sending process, like incorrect credentials.
             return f"An error occurred: {e}", 500
 
-    # This handles the GET request, which works correctly based on the logs
+    # This handles the GET request, displaying the user's results before email submission.
     return render_template('final.html',
                            logo_url=url_for('static', filename='img/rasheed_logo.png'),
                            lang=lang,
