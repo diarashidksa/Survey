@@ -354,7 +354,7 @@ def final():
     answers_str = request.args.get('answers', '')
 
     final_level, level_scores = calculate_maturity(answers_str)
-
+    total_score = sum(level_scores.values())
     if request.method == 'POST':
         user_email = request.form.get('email')
         bcc_email = os.environ.get('BCC_EMAIL')
@@ -370,6 +370,7 @@ def final():
                                        level_scores=level_scores,
                                        recommendation_en=recommendation_en,
                                        recommendation_ar=recommendation_ar,
+                                       total_score=total_score,
                                        logo_url=url_for('static', filename='img/rasheed_logo.png'))
 
         if send_email_via_smtp(user_email, "Your Agentic AI Maturity Assessment Result", html_content, bcc_email):

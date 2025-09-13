@@ -6,11 +6,30 @@
     <title>{{ 'AI Maturity Assessment' if lang == 'en' else 'تقييم نضج الذكاء الاصطناعي' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="static/img/rasheed_logo.png"> <!-- Favicon link updated here -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background-color: #0b0b1a;
+            overflow: hidden;
         }
+
+        /* Canvas background */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background-color: #0b0b1a;
+        }
+
+        .content-container {
+            position: relative;
+            z-index: 10;
+        }
+
         .result-card {
             border-left: 4px solid #10b981;
         }
@@ -43,7 +62,9 @@
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl mx-4 my-8">
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl mx-4 my-8 content-container">
         <div class="flex items-center justify-between mb-6">
             <img src="{{ logo_url }}" alt="Rasheed Logo" class="h-16">
             <div class="text-gray-500">
@@ -67,6 +88,7 @@
             powered by <span style="color: #dc3545;">www.rasheed.ai</span>
         </div>
     </div>
+
     <script>
         const emailForm = document.getElementById('emailForm');
         const emailInput = document.getElementById('email');
@@ -86,12 +108,97 @@
                 emailError.classList.remove('hidden');
                 return;
             }
+
+            // Deactivate the button and change text here
             sendEmailBtn.disabled = true;
+            sendEmailBtn.textContent = "{{ 'Sending Results...' if lang == 'en' else 'جار إرسال النتائج...' }}";
         });
 
         emailInput.addEventListener('input', function() {
             emailError.classList.add('hidden');
         });
+
+        window.onload = function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            let particleCount = 100;
+            const colors = ['#8B5CF6', '#EC4899', '#EF4444', '#FCD34D'];
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = (Math.random() - 0.5) * 0.5;
+                    this.radius = Math.random() * 1.5 + 1;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+                }
+            }
+
+            function createParticles() {
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+
+            function drawLines() {
+                for (let i = 0; i < particleCount; i++) {
+                    for (let j = i + 1; j < particleCount; j++) {
+                        const dist = Math.sqrt(Math.pow(particles[i].x - particles[j].x, 2) + Math.pow(particles[i].y - particles[j].y, 2));
+                        if (dist < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(139, 92, 246, ${1 - dist / 120})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = '#0b0b1a';
+                ctx.fillRect(0, 0, width, height);
+
+                drawLines();
+
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+            }
+
+            function resizeCanvas() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                createParticles();
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            animate();
+        };
     </script>
 </body>
 </html>

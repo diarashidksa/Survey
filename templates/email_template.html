@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI Maturity Report</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -50,22 +52,22 @@
             font-size: 16px;
         }
         .level-card {
-            background-color: #ffebf8;
+            background-color: #f0f0f0;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 15px;
-            border-left: 5px solid #ce3131;
+            border-left: 5px solid #cccccc;
         }
         .level-card h3 {
             margin: 0;
             font-size: 18px;
-            color: #822c52;
+            color: #444444;
             font-weight: 600;
         }
         .level-card p {
             margin: 5px 0 0;
             font-size: 15px;
-            color: #684a55;
+            color: #222222;
         }
         .footer {
             text-align: center;
@@ -77,6 +79,70 @@
         .contact-section {
             text-align: center;
             padding: 25px 0;
+        }
+
+        /* ----- Start of new CSS for the pipeline bar (email safe) ----- */
+        .pipeline-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 30px 0;
+        }
+        .pipeline-item {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            padding: 15px 5px;
+            position: relative;
+        }
+        .arrow-right {
+            border-top: 25px solid transparent;
+            border-bottom: 25px solid transparent;
+            border-left: 15px solid;
+            display: inline-block;
+            vertical-align: top;
+            position: absolute;
+            right: -15px;
+            top: 0;
+        }
+        .arrow-left {
+            border-top: 25px solid transparent;
+            border-bottom: 25px solid transparent;
+            border-right: 15px solid;
+            display: inline-block;
+            vertical-align: top;
+            position: absolute;
+            left: -15px;
+            top: 0;
+        }
+        /* Color Mapping */
+        .color-minimal { background-color: #ce3131; }
+        .color-emerging { background-color: #ff8c00; }
+        .color-basic { background-color: #ffd700; }
+        .color-intermediate { background-color: #9acd32; }
+        .color-advanced { background-color: #2e8b57; }
+        /* Arrow Pointer */
+        .arrow-pointer {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #333333;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            margin-left: -8px; /* Correctly centers the arrow */
+            display: none;
+        }
+        .active .arrow-pointer {
+            display: block;
+            margin-top: 10px; /* Adjusted margin-top to make the arrow higher */
+        }
+        /* New dotted border for the active cell */
+        .active {
+            border: 3px dotted #000;
         }
     </style>
 </head>
@@ -91,9 +157,38 @@
             <p style="font-size: 16px;">Here is the result of your assessment</p>
 
             <h2>Your Maturity Level</h2>
-            <p style="font-weight: bold; font-size: 24px; color: #ce3131;">
-                {{ final_level_en }} ({{ final_level_ar }})
+            <p style="font-weight: bold; font-size: 24px; color: #ce3131;">{{ final_level_en }} ({{ final_level_ar }})</p>
+
+            <p style="font-weight: bold; font-size: 20px; color: #684a55; margin-top: -10px;">
+                Total Score: {{ total_score }}
             </p>
+
+            <!-- The new pipeline bar to visualize the maturity level -->
+            <!-- The 'active' class and colors must be set by your backend based on the final_level_en value. -->
+            <table role="presentation" class="pipeline-table">
+                <tr>
+                    <td class="pipeline-item color-minimal {% if final_level_en == 'Minimal' %}active{% endif %}">
+                        <span class="arrow-pointer"></span>
+                        Minimal
+                    </td>
+                    <td class="pipeline-item color-emerging {% if final_level_en == 'Emerging' %}active{% endif %}">
+                        <span class="arrow-pointer"></span>
+                        Emerging
+                    </td>
+                    <td class="pipeline-item color-basic {% if final_level_en == 'Basic' %}active{% endif %}">
+                        <span class="arrow-pointer"></span>
+                        Basic
+                    </td>
+                    <td class="pipeline-item color-intermediate {% if final_level_en == 'Intermediate' %}active{% endif %}">
+                        <span class="arrow-pointer"></span>
+                        Intermediate
+                    </td>
+                    <td class="pipeline-item color-advanced {% if final_level_en == 'Advanced' %}active{% endif %}">
+                        <span class="arrow-pointer"></span>
+                        Advanced
+                    </td>
+                </tr>
+            </table>
 
             <h2>Recommendation</h2>
             <p>{{ recommendation_en }}</p>
@@ -103,14 +198,13 @@
             {% for level_name, score in level_scores.items() %}
                 <div class="level-card">
                     <h3>{{ level_name }}</h3>
-                    <p>{{ score }}</p>
+                    <p class="score-value">{{ score }}</p>
                 </div>
             {% endfor %}
-
         </div>
         <div class="contact-section">
             <p style="color: #633c4a; font-size: 14px; margin-bottom: 20px;">
-                If you need an advanced assessment or want to know more about our services or solution implementation please contact us at <a href="mailto:sales@rasheed.ai" style="color: #ce3131; text-decoration: none; font-weight: bold;">sales@rasheed.ai</a>
+               Ready to see how our advanced solutions can transform your business? Get a personalized assessment today and discover the full scope of our services. Contact our team at  <a href="mailto:sales@rasheed.ai" style="color: #ce3131; text-decoration: none; font-weight: bold;">sales@rasheed.ai</a>
             </p>
             <a href="mailto:sales@rasheed.ai" style="display: inline-block; background-color: #ce3131; color: #ffffff; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">Contact Us</a>
         </div>
